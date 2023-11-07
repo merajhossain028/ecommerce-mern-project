@@ -5,6 +5,7 @@ const xssClean = require("xss-clean");
 const rateLimit = require("express-rate-limit");
 const userRoute = require("./router/userRouters");
 const seedRouter = require("./router/seedRouter");
+const { errorResponse } = require("./controller/responseController");
 const app = express();
 
 const rateLimiter = rateLimit({
@@ -35,12 +36,9 @@ app.use((req, res, next) => {
 
 //server side error handling
 app.use((err, req, res, next) => {
-  return res.status(err.status || 500).json({
-      error: {
-        success: false,
-      status: err.status || 500,
-      message: err.message || "Internal Server Error",
-    },
+  return errorResponse(res, {
+    statusCode: err.statusCode,
+    message: err.message,
   });
 });
 
