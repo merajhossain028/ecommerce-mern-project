@@ -1,12 +1,13 @@
 const createError = require("http-errors");
 const User = require("../models/userModels");
 const { successResponse } = require("./responseController");
+const mongoose = require("mongoose");
 
 const getUsers = async (req, res, next) => {
   try {
     const search = req.query.search || "";
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 1;
+    const limit = Number(req.query.limit) || 5;
 
     const searchRegex = new RegExp(".*" + search + ".*", "i");
     const filter = {
@@ -47,5 +48,29 @@ const getUsers = async (req, res, next) => {
     console.log(error);
   }
 };
+const getUser = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const options = { password: 0 };
 
-module.exports = { getUsers };
+    const user = await User.findById(id, options);
+
+    if (!user) {
+      throw createError(404, "User was not found!");
+    }
+
+    return successResponse(res, {
+      success: 200,
+      message: "User were returned successfully!",
+      payload: { user },
+    });
+  } catch (error) {
+    if (error instanceof mongoose.Error) {
+      next(createError(400, 'Invalid user id!'));
+      return;
+    }
+    console.log(error);
+  }
+};
+
+module.exports = { getUsers, getUser };
