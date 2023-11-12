@@ -1,4 +1,6 @@
 const createError = require("http-errors");
+const fs = require("fs");
+
 const User = require("../models/userModels");
 const { successResponse } = require("./responseController");
 const { findWithId } = require("../services/findItem");
@@ -62,5 +64,44 @@ const getUser = async (req, res, next) => {
     next(error);
   }
 };
+const deleteUser = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const options = { password: 0 };
+    const user = await findWithId(id, options);
 
-module.exports = { getUsers, getUser };
+    const userImagePath = user.image;
+    if (userImagePath) {
+      fs.access(userImagePath, (err) => {
+        if (err) {
+          console.error("User image does not exist");
+        } else {
+          fs.unlink(userImagePath, (err) => {
+            if (err) throw err;
+            console.log("User image was deleted");
+          });
+        }
+      });
+    } else {
+      console.error("User image path is undefined");
+    }
+
+    const deletedUser = await User.findByIdAndDelete({
+      _id: id,
+      isAdmin: false,
+    });
+
+    if (!deletedUser) {
+      return next(createError(404, "User was not found!"));
+    }
+
+    return successResponse(res, {
+      success: 200,
+      message: "User was returned successfully!",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getUsers, getUser, deleteUser };
