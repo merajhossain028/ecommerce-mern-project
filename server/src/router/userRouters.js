@@ -1,15 +1,15 @@
 const express = require("express");
 const {
   getUsers,
-  getUser,
-  deleteUser,
+  getUserByID,
+  deleteUserById,
 } = require("../controller/userController");
 const { get } = require("mongoose");
 const userRouter = express.Router();
 
 // GET: api/users
 userRouter.get("/", getUsers);
-userRouter.get("/:id", getUser);
-userRouter.delete("/:id", deleteUser);
+userRouter.get("/:id", getUserByID);
+userRouter.delete("/:id", deleteUserById);
 
 module.exports = userRouter;
