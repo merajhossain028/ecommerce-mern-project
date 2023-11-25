@@ -6,7 +6,9 @@ const { successResponse } = require("./responseController");
 const { findWithId } = require("../services/findItem");
 const { deleteImage } = require("../helper/deleteImage");
 const { createJsonWebToken } = require("../helper/jsonwebtoken");
-const { jwtActivationKey } = require("../secrete");
+const { jwtActivationKey, clientURL, smtpUserName } = require("../secrete");
+const { emailWithNodeMail } = require("../helper/email");
+const { trace } = require("console");
 
 const getUsers = async (req, res, next) => {
   try {
@@ -98,11 +100,8 @@ const deleteUserById = async (req, res, next) => {
 const processRegister = async (req, res, next) => {
   try {
     const { name, email, password, phone, address } = req.body;
-
-    const userExist = await User.findOne({ emai: email })
-    
-    
-    if (userExist == null) {
+    const userExist = await User.findOne({ email: email });
+    if (userExist) {
       throw createError(409, "Email already exists! Please try another one.");
     }
 
@@ -114,9 +113,30 @@ const processRegister = async (req, res, next) => {
     );
     console.log(token);
 
+    // prepare email
+    const emailData = {
+      email,
+      subject: "Account activation link",
+      html: `
+        <h2>Please click on given link to activate your account</h2>
+        <p>Please click here to <a href="${clientURL}/api/users/activate/${token}" target="_blank">activate your account</a></p>
+        <hr />
+        <p>This email may contain sensetive information</p>
+      `,
+    };
+
+    try {
+      await emailWithNodeMail(emailData);
+    } catch (emailError) {
+      next(
+        createError(500, "Email could not be sent! Please try again later.")
+      );
+      return;
+    }
+
     return successResponse(res, {
       success: 200,
-      message: "User was create successfully!",
+      message: `Please go to your ${email} for complete registration! Thank you!`,
       payload: { token },
     });
   } catch (error) {
@@ -124,4 +144,9 @@ const processRegister = async (req, res, next) => {
   }
 };
 
-module.exports = { getUsers, getUserByID, deleteUserById, processRegister };
+module.exports = {
+  getUsers,
+  getUserByID,
+  deleteUserById,
+  processRegister,
+};

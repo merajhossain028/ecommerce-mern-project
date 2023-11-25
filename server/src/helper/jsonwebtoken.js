@@ -5,7 +5,7 @@ const createJsonWebToken = (payload, secretKey, expiresIn) => {
     throw new Error("Payload must be an object!");
   }
   if (typeof secretKey !== "string" || secretKey === "") {
-    throw new Error("Secret Key must be an object!");
+    throw new Error("Secret Key must be a non-empty string!");
   }
   try {
     const token = jwt.sign(payload, secretKey, { expiresIn });
