@@ -7,10 +7,11 @@ const {
   activateUserAccount,
 } = require("../controller/userController");
 const { get } = require("mongoose");
+const upload = require("../middlewears/uploadFile");
 const userRouter = express.Router();
 
 // GET: api/users
-userRouter.post("/process-register", processRegister);
+userRouter.post("/process-register", upload.single("image"), processRegister);
 userRouter.post("/verify", activateUserAccount);
 userRouter.get("/", getUsers);
 userRouter.get("/:id", getUserByID);
