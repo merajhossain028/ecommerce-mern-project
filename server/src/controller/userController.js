@@ -127,7 +127,7 @@ const processRegister = async (req, res, next) => {
     };
 
     try {
-      //await emailWithNodeMail(emailData);
+      await emailWithNodeMail(emailData);
     } catch (emailError) {
       next(
         createError(500, "Email could not be sent! Please try again later.")
